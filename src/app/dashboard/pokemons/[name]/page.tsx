@@ -1,28 +1,33 @@
-import { Pokemon } from "@/pokemons";
+import { Pokemon, PokemonsResponse } from "@/pokemons";
 import { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
 interface Props {
-  params: { id: string };
+  params: { name: string };
 }
 
 // ! Solo se genera en el build time
 export async function generateStaticParams(){
-  const static151Pokemons = Array.from({ length: 151 }).map((v, i) => `${i + 1}`)
-  return static151Pokemons.map(id => ({ id }));
+
+    const data:PokemonsResponse = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
+      .then(resp => resp.json());
+
+    const static151Pokemons = data.results.map(pokemon => ({
+        name: pokemon.name,
+    }));
+
+    return static151Pokemons.map(({ name }) => ({ name }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
-    const { name, id } = await getPokemon(params.id);
+    const { name, id } = await getPokemon(params.name);
 
     return {
-      title: `${name} - #${id}`,
-      description: `Pagina del pokemon ${name}`,
+      title: `${name} - ${id}`,
     }
-
   } catch (error) {
     return {
       title: 'Pokemon no encontrado',
@@ -31,16 +36,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-const getPokemon = async (id: string): Promise<Pokemon> => {
+const getPokemon = async (name: string): Promise<Pokemon> => {
 
   try {
-    const pokemon = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`, {
+    const pokemon = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`, {
       next: {
         revalidate: 60 * 60 * 30 * 6,
       }
     }).then(resp => resp.json());
 
     return pokemon;
+    
   } catch (error) {
     notFound();
   }
@@ -49,7 +55,7 @@ const getPokemon = async (id: string): Promise<Pokemon> => {
 
 export default async function PokemonPage({ params }: Props) {
 
-  const pokemon = await getPokemon(params.id);
+  const pokemon = await getPokemon(params.name);
 
 
   return (
