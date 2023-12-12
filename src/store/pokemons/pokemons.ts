@@ -11,13 +11,14 @@ interface PokemonsState {
     favorites: { [key: string]: SimplePokemon },
 }
 
-const getInitialState = (): PokemonsState => {
-    // if(typeof localStorage === 'undefined') return {};
-    const favorites = JSON.parse(localStorage.getItem('favorite-pokemons') ?? '{}');
-    return favorites;
-}
+// const getInitialState = (): PokemonsState => {
+//     // if(typeof localStorage === 'undefined') return {};
+//     const favorites = JSON.parse(localStorage.getItem('favorite-pokemons') ?? '{}');
+//     return favorites;
+// }
 
 const initialState: PokemonsState = {
+    favorites: {},
     // ...getInitialState(),
 }
 
@@ -25,6 +26,9 @@ const pokemonsSlice = createSlice({
     name: 'pokemons',
     initialState,
     reducers: {
+        setFavoritePokemons(state, action: PayloadAction<{ [key: string]: SimplePokemon}>){
+            state.favorites = action.payload;
+        },
         toggleFavorite(state, action: PayloadAction<SimplePokemon>) {
             const pokemon = action.payload;
             const { id } = pokemon;
@@ -41,6 +45,6 @@ const pokemonsSlice = createSlice({
     }
 });
 
-export const { toggleFavorite } = pokemonsSlice.actions
+export const { toggleFavorite, setFavoritePokemons } = pokemonsSlice.actions
 
 export default pokemonsSlice.reducer
